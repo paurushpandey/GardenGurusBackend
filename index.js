@@ -32,6 +32,13 @@ app.listen(PORT, () => {
     console.log(`Listening on Port ${PORT}`);
 });
 
+// const userRoutes = require("./routes/user");
+const plantRoutes = require("./routes/plants");
+
+// app.use("/user", userRoutes);
+app.use("/plant", plantRoutes);
+
+
 const connectToDB = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI, {

@@ -1,12 +1,14 @@
 const mongoose = require("mongoose");
 
 const plantSchema = new mongoose.Schema({
-    name: String, // required.
+    name: String, 
     description: String,
     wateringTime: String,
     frequency: Number,
     size: String,
-    difficulty: String
+    difficulty: String,
+    media:Array,
+    soilpH: Number
 });
 
 
