@@ -41,7 +41,18 @@ const uploadPlant = async (req, res) => {
     }
 }
 
+const getAllPlants = async (req, res) => {
+    try {
+        const plants = await Plant.find();
+        res.json(plants);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+}
+
 
 router.post("/upload-plant", uploadPlant);
+router.get("/get-all-plants", getAllPlants);
+
 
 module.exports = router;
