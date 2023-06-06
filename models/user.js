@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     plantsOwned: [{
         plant: {type: mongoose.Schema.Types.ObjectId, ref: 'Plant'},
         dateLastWatered: { type: Date, default: Date.now },
-        posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}]
+        posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}],
+        plantNumber: Number
     }], 
     friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
 });
