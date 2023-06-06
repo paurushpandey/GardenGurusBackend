@@ -103,8 +103,84 @@ const login = async (req, res) => {
       });
   };
 
+  const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+  }
+
+  const addPlant = async (req, res) => {
+    const {plant_id} = req.body;
+    if (req.headers && req.headers.authorization) {
+      let authorization = req.headers.authorization.split(' ')[1],
+          decoded;
+      try {
+          decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+          // console.log(decoded)
+      } catch (e) {
+          return res.status(401).send('Token not authorized or expired');
+      }
+      // console.log(decoded)
+      let userId = decoded.userId;
+      // console.log(userId)
+      // Fetch the user by id 
+      User.findOne({_id: userId}).then(function(user) {
+        user.plantsOwned.push({
+          plant: plant_id,
+          daysSinceWatered: 0,
+          posts: []
+        })
+        console.log(user)
+        user.save().then((savedUser)=>{
+          if(user == savedUser){
+            res.status(200).send({
+              message: "Added plant successfully",
+              data: user,
+            });
+          } else{
+            return res.status(400).json({
+              message: err.message,
+          });
+          }
+        })
+      });
+    }
+  }
+
+  const getUsersPlants = async (req, res) => {
+    if (req.headers && req.headers.authorization) {
+      let authorization = req.headers.authorization.split(' ')[1],
+          decoded;
+      try {
+          decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+          // console.log(decoded)
+      } catch (e) {
+          return res.status(401).send('Token not authorized or expired');
+      }
+      let userId = decoded.userId;
+      try{
+        User.findOne({_id: userId}).then(function(user) {
+          res.json(user.plantsOwned)
+          res.status(200)
+        });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    }
+  }
+
   router.post("/register", register);
   router.post("/login", login);
+  router.get("/get-all-users", getAllUsers);
+  // router.get("/get-users-friends", getUsersFriends);
+  // router.get("/add-friend", addFriend);
+  router.post("/add-plant", addPlant);
+  // router.post("/update-watered", updateWatered);
+  router.get("/get-users-plants", getUsersPlants)
+
 
 
   module.exports = router;

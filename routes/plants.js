@@ -19,7 +19,7 @@ const uploadPlant = async (req, res) => {
 
     try {
         await plant.save();
-        return res.status(400).json({
+        return res.status(200).json({
             success: true,
             message: "Plant successfully added!",
             data: plant,
