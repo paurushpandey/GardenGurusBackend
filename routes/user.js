@@ -205,14 +205,84 @@ const updateWatered = async (req, res) => {
   }
 };
 
+const getUsersFriends = async (req,res) => {
+
+}
+
+const removePlant = async (req, res) => {
+  const { plantNumber } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      user.plantsOwned.splice(plantNumber, 1);
+      if(plantNumber < user.plantsOwned.length){
+        for (let i = plantNumber; i < user.plantsOwned.length; i++) {
+          user.plantsOwned[i].plantNumber--;
+        }
+      }
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Deleted plant successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
+const addFriend = async (req,res) => {
+  const { friend_id } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+      // console.log(decoded)
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      user.friends.push(friend_id);
+      console.log(user);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Added friend successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+}
+
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
-// router.get("/get-users-friends", getUsersFriends);
-// router.get("/add-friend", addFriend);
+router.get("/get-users-friends", getUsersFriends);
+router.post("/add-friend", addFriend);
 router.post("/add-plant", addPlant);
 router.post("/update-watered", updateWatered);
 router.get("/get-users-plants", getUsersPlants);
+router.post("/remove-plant", removePlant);
 
 module.exports = router;
 
