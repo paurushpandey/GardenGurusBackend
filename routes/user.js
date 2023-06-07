@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const request = require("request");
 const User = require("../models/user");
+const Plant = require("../models/plant");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -130,7 +131,7 @@ const addPlant = async (req, res) => {
         plant: plant_id,
         dateLastWatered: Date.now(),
         posts: [],
-        plantNumber: user.plantsOwned.length
+        plantNumber: user.plantsOwned.length,
       });
       console.log(user);
       user.save().then((savedUser) => {
@@ -161,9 +162,12 @@ const getUsersPlants = async (req, res) => {
     }
     let userId = decoded.userId;
     try {
-      User.findOne({ _id: userId }).then(function (user) {
-        res.json(user.plantsOwned);
-        res.status(200);
+      User.findOne({ _id: userId }).then(async function (user) {
+        const plantArray = await Promise.all(user.plantsOwned.map((p) => getPlant(p.plant)));
+        res.status(200).json({
+          plantsOwned: user.plantsOwned,
+          plantArray: plantArray,
+        });
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -211,3 +215,17 @@ router.post("/update-watered", updateWatered);
 router.get("/get-users-plants", getUsersPlants);
 
 module.exports = router;
+
+// Helper functions
+
+const getPlant = async (plantId) => {
+  id = plantId.toString()
+  try {
+    plants = await Plant.findOne({ _id: id }).then(function (plant){
+      return plant
+    })
+    return plants    
+  } catch (err) {
+    console.log(err)
+  }
+};
