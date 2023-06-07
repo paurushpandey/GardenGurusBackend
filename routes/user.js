@@ -82,6 +82,7 @@ const login = async (req, res) => {
           //   return success response
           res.status(200).send({
             message: "Login Successful",
+            name: user.name,
             email: user.email,
             token,
           });
@@ -208,7 +209,7 @@ const updateWatered = async (req, res) => {
   }
 };
 
-const getUsersFriendsPlants = async (req, res) => {
+const getUsersFriends = async (req, res) => {
   if (req.headers && req.headers.authorization) {
     let authorization = req.headers.authorization.split(" ")[1],
       decoded;
@@ -221,12 +222,12 @@ const getUsersFriendsPlants = async (req, res) => {
     let userId = decoded.userId;
     try {
       User.findOne({ _id: userId }).then(async function (user) {
-        const friendsPlants = await Promise.all(
+        const friends = await Promise.all(
           user.friends.map((f) => getPlantsFromUserId(f))
         );
         // console.log(friendsPlants)
         res.status(200).json({
-          friendsPlants
+          friends
         });
       });
     } catch (err) {
@@ -333,7 +334,7 @@ const updatePrivacy = async (req, res) => {
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
-router.get("/get-users-friends-plants", getUsersFriendsPlants);
+router.get("/get-users-friends", getUsersFriends);
 router.post("/add-friend", addFriend);
 router.post("/add-plant", addPlant);
 router.post("/update-watered", updateWatered);
@@ -366,7 +367,7 @@ const getPlantsFromUserId = async (userId) => {
         user.plantsOwned.map((p) => getPlant(p.plant))
       );
       let json = {
-        friendId: userId,
+        friend: user,
         plantArray: plantArray,
       }
       return json
