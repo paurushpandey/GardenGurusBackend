@@ -163,7 +163,9 @@ const getUsersPlants = async (req, res) => {
     let userId = decoded.userId;
     try {
       User.findOne({ _id: userId }).then(async function (user) {
-        const plantArray = await Promise.all(user.plantsOwned.map((p) => getPlant(p.plant)));
+        const plantArray = await Promise.all(
+          user.plantsOwned.map((p) => getPlant(p.plant))
+        );
         res.status(200).json({
           plantsOwned: user.plantsOwned,
           plantArray: plantArray,
@@ -205,9 +207,32 @@ const updateWatered = async (req, res) => {
   }
 };
 
-const getUsersFriends = async (req,res) => {
-
-}
+const getUsersFriendsPlants = async (req, res) => {
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+      // console.log(decoded)
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    try {
+      User.findOne({ _id: userId }).then(async function (user) {
+        const friendsPlants = await Promise.all(
+          user.friends.map((f) => getPlantsFromUserId(f))
+        );
+        // console.log(friendsPlants)
+        res.status(200).json({
+          friendsPlants
+        });
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+};
 
 const removePlant = async (req, res) => {
   const { plantNumber } = req.body;
@@ -222,7 +247,7 @@ const removePlant = async (req, res) => {
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
       user.plantsOwned.splice(plantNumber, 1);
-      if(plantNumber < user.plantsOwned.length){
+      if (plantNumber < user.plantsOwned.length) {
         for (let i = plantNumber; i < user.plantsOwned.length; i++) {
           user.plantsOwned[i].plantNumber--;
         }
@@ -243,7 +268,7 @@ const removePlant = async (req, res) => {
   }
 };
 
-const addFriend = async (req,res) => {
+const addFriend = async (req, res) => {
   const { friend_id } = req.body;
   if (req.headers && req.headers.authorization) {
     let authorization = req.headers.authorization.split(" ")[1],
@@ -272,12 +297,12 @@ const addFriend = async (req,res) => {
       });
     });
   }
-}
+};
 
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
-router.get("/get-users-friends", getUsersFriends);
+router.get("/get-users-friends-plants", getUsersFriendsPlants);
 router.post("/add-friend", addFriend);
 router.post("/add-plant", addPlant);
 router.post("/update-watered", updateWatered);
@@ -289,13 +314,34 @@ module.exports = router;
 // Helper functions
 
 const getPlant = async (plantId) => {
-  id = plantId.toString()
+  id = plantId.toString();
   try {
-    plants = await Plant.findOne({ _id: id }).then(function (plant){
-      return plant
-    })
-    return plants    
+    plants = await Plant.findOne({ _id: id }).then(function (plant) {
+      return plant;
+    });
+    return plants;
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 };
+
+const getPlantsFromUserId = async (userId) => {
+  // console.log(userId)
+  id = userId.toString()
+  try {
+    const plants = await User.findOne({ _id: id }).then(async function (user) {
+      const plantArray = await Promise.all(
+        user.plantsOwned.map((p) => getPlant(p.plant))
+      );
+      let json = {
+        friendId: userId,
+        plantArray: plantArray,
+      }
+      return json
+    });
+    return plants
+  } catch (err) {
+    console.log(err.message)
+  }
+
+}
