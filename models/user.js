@@ -4,6 +4,7 @@ const userSchema = new mongoose.Schema({
     name: { type: String, unique: true }, // required.
     email: { type: String, unique: true }, // required.
     password: String, // required.
+    public: Boolean,
     plantsOwned: [{
         plant: {type: mongoose.Schema.Types.ObjectId, ref: 'Plant'},
         dateLastWatered: { type: Date, default: Date.now },
