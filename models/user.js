@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
         posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}],
         plantNumber: Number
     }], 
-    friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
+    friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+    coins: Number
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

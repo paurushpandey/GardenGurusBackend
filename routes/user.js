@@ -19,6 +19,7 @@ const register = async (req, res) => {
         email: email,
         password: hashedPassword,
         public: true,
+        coins: 0
       });
 
       // save the new user
@@ -397,6 +398,37 @@ const dryPlant = async (req, res) => {
   }
 };
 
+const addCoins = async (req, res) => {
+  const { amt } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      if(user.coins === undefined) user.coins = amt;
+      else user.coins += amt;
+      console.log(user);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Added coins successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
@@ -409,6 +441,8 @@ router.get("/get-users-plants", getUsersPlants);
 router.post("/remove-plant", removePlant);
 router.post("/update-privacy", updatePrivacy);
 router.post("/dry-plant", dryPlant);
+router.post("/add-coins", addCoins);
+
 
 
 module.exports = router;
