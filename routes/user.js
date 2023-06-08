@@ -429,6 +429,29 @@ const addCoins = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+      // console.log(decoded)
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    try {
+      User.findOne({ _id: userId }).then(async function (user) {
+        res.status(200).json({
+          coins: user.coins,
+        });
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+};
+
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
@@ -442,6 +465,8 @@ router.post("/remove-plant", removePlant);
 router.post("/update-privacy", updatePrivacy);
 router.post("/dry-plant", dryPlant);
 router.post("/add-coins", addCoins);
+router.get("/get-profile", getProfile);
+
 
 
 
