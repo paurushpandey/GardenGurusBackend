@@ -227,7 +227,7 @@ const getUsersFriends = async (req, res) => {
         );
         // console.log(friendsPlants)
         res.status(200).json({
-          friends
+          friends,
         });
       });
     } catch (err) {
@@ -270,6 +270,35 @@ const removePlant = async (req, res) => {
   }
 };
 
+const removeFriend = async (req, res) => {
+  const { friend_id } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      user.friends.splice(user.friends.indexOf(friend_id),1);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Deleted friend successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
 const addFriend = async (req, res) => {
   const { friend_id } = req.body;
   if (req.headers && req.headers.authorization) {
@@ -283,6 +312,11 @@ const addFriend = async (req, res) => {
     }
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
+      if(user.friends.indexOf(friend_id)!=-1){
+        return res.status(201).send({
+          message: "Friend is already added!"
+        })
+      }
       user.friends.push(friend_id);
       console.log(user);
       user.save().then((savedUser) => {
@@ -336,6 +370,7 @@ router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
 router.get("/get-users-friends", getUsersFriends);
 router.post("/add-friend", addFriend);
+router.post("/remove-friend", removeFriend);
 router.post("/add-plant", addPlant);
 router.post("/update-watered", updateWatered);
 router.get("/get-users-plants", getUsersPlants);
@@ -360,7 +395,7 @@ const getPlant = async (plantId) => {
 
 const getPlantsFromUserId = async (userId) => {
   // console.log(userId)
-  id = userId.toString()
+  id = userId.toString();
   try {
     const plants = await User.findOne({ _id: id }).then(async function (user) {
       const plantArray = await Promise.all(
@@ -369,12 +404,11 @@ const getPlantsFromUserId = async (userId) => {
       let json = {
         friend: user,
         plantArray: plantArray,
-      }
-      return json
+      };
+      return json;
     });
-    return plants
+    return plants;
   } catch (err) {
-    console.log(err.message)
+    console.log(err.message);
   }
-
-}
+};
