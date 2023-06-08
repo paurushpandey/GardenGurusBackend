@@ -5,6 +5,7 @@ const User = require("../models/user");
 const Plant = require("../models/plant");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -365,6 +366,37 @@ const updatePrivacy = async (req, res) => {
   }
 };
 
+const dryPlant = async (req, res) => {
+  const { plantNumber, amt } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      const newDate = moment(user.plantsOwned[plantNumber].dateLastWatered).subtract(amt, "days");
+      user.plantsOwned[plantNumber].dateLastWatered = newDate;
+      console.log(user);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Dried plant successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
 router.post("/register", register);
 router.post("/login", login);
 router.get("/get-all-users", getAllUsers);
@@ -376,6 +408,8 @@ router.post("/update-watered", updateWatered);
 router.get("/get-users-plants", getUsersPlants);
 router.post("/remove-plant", removePlant);
 router.post("/update-privacy", updatePrivacy);
+router.post("/dry-plant", dryPlant);
+
 
 module.exports = router;
 
