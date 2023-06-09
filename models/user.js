@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
         plantNumber: Number
     }], 
     friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
-    coins: Number
+    coins: Number,
+    avatarsUnlocked: [Number]
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

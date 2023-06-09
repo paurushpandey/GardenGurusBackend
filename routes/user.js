@@ -20,6 +20,7 @@ const register = async (req, res) => {
         password: hashedPassword,
         public: true,
         coins: 0,
+        avatarsUnlocked: [1,0,0]
       });
 
       // save the new user
@@ -227,7 +228,6 @@ const getUsersFriends = async (req, res) => {
         const friends = await Promise.all(
           user.friends.map((f) => getPlantsFromUserId(f))
         );
-        // console.log(friendsPlants)
         res.status(200).json({
           friends,
         });
@@ -431,6 +431,39 @@ const addCoins = async (req, res) => {
   }
 };
 
+const updateAvatars = async (req, res) => {
+  const { avatarNumber } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      if(user.avatarsUnlocked == undefined||user.avatarsUnlocked.length!=3){
+        user.avatarsUnlocked = [1,0,0];
+      }
+      user.avatarsUnlocked[avatarNumber] = 1;
+      console.log(user);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Updated avatar successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
 const getProfile = async (req, res) => {
   if (req.headers && req.headers.authorization) {
     let authorization = req.headers.authorization.split(" ")[1],
@@ -446,6 +479,8 @@ const getProfile = async (req, res) => {
       User.findOne({ _id: userId }).then(async function (user) {
         res.status(200).json({
           coins: user.coins,
+          public: user.public,
+          avatarsUnlocked: user.avatarsUnlocked
         });
       });
     } catch (err) {
@@ -468,6 +503,7 @@ router.post("/update-privacy", updatePrivacy);
 router.post("/dry-plant", dryPlant);
 router.post("/add-coins", addCoins);
 router.get("/get-profile", getProfile);
+router.post("/update-avatars", updateAvatars);
 
 module.exports = router;
 
