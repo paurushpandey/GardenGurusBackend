@@ -1,4 +1,4 @@
-const Plant = require('../models/plant');
+const Plant = require("../models/plant");
 
 const getPlant = async (plantId) => {
   id = plantId.toString();
@@ -12,4 +12,4 @@ const getPlant = async (plantId) => {
   }
 };
 
-module.exports = { getPlant }
+module.exports = { getPlant };
