@@ -224,12 +224,12 @@ const getUsersFriends = async (req, res) => {
     let userId = decoded.userId;
     try {
       User.findOne({ _id: userId }).then(async function (user) {
-        const friendsPlants = await Promise.all(
+        const friends = await Promise.all(
           user.friends.map((f) => getPlantsFromUserId(f))
         );
         // console.log(friendsPlants)
         res.status(200).json({
-          friendsPlants,
+          friends,
         });
       });
     } catch (err) {
