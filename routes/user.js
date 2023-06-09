@@ -6,6 +6,9 @@ const Plant = require("../models/plant");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const { getPlant } = require('../helpers/plants')
+const { getPlantsFromUserId } = require('../helpers/user')
+
 
 const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -548,38 +551,3 @@ router.post("/update-avatar-selected", updateAvatarSelected);
 
 
 module.exports = router;
-
-// Helper functions
-
-const getPlant = async (plantId) => {
-  id = plantId.toString();
-  try {
-    plants = await Plant.findOne({ _id: id }).then(function (plant) {
-      return plant;
-    });
-    return plants;
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-const getPlantsFromUserId = async (userId) => {
-  // console.log(userId)
-  id = userId.toString();
-  try {
-    const plants = await User.findOne({ _id: id }).then(async function (user) {
-      const plantArray = await Promise.all(
-        user.plantsOwned.map((p) => getPlant(p.plant))
-      );
-      let json = {
-        friend: user,
-        plantArray: plantArray,
-        coins: user.coins,
-      };
-      return json;
-    });
-    return plants;
-  } catch (err) {
-    console.log(err.message);
-  }
-};
