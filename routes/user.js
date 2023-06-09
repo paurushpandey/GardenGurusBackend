@@ -464,6 +464,44 @@ const updateAvatars = async (req, res) => {
   }
 };
 
+const updateAvatarSelected = async (req, res) => {
+  const { avatarNumber } = req.body;
+  if (req.headers && req.headers.authorization) {
+    let authorization = req.headers.authorization.split(" ")[1],
+      decoded;
+    try {
+      decoded = jwt.verify(authorization, "RANDOM-TOKEN");
+    } catch (e) {
+      return res.status(401).send("Token not authorized or expired");
+    }
+    let userId = decoded.userId;
+    User.findOne({ _id: userId }).then(function (user) {
+      if(user.avatarSelected == undefined){
+        user.avatarSelected = 0;
+      }
+      if(user.avatarsUnlocked[avatarNumber]==0){
+        return res.status(400).json({
+          message: "Avatar not unlocked!"
+        })
+      }
+      user.avatarSelected = avatarNumber;
+      console.log(user);
+      user.save().then((savedUser) => {
+        if (user == savedUser) {
+          res.status(200).send({
+            message: "Updated avatar successfully",
+            data: user,
+          });
+        } else {
+          return res.status(400).json({
+            message: err.message,
+          });
+        }
+      });
+    });
+  }
+};
+
 const getProfile = async (req, res) => {
   if (req.headers && req.headers.authorization) {
     let authorization = req.headers.authorization.split(" ")[1],
@@ -480,7 +518,8 @@ const getProfile = async (req, res) => {
         res.status(200).json({
           coins: user.coins,
           public: user.public,
-          avatarsUnlocked: user.avatarsUnlocked
+          avatarsUnlocked: user.avatarsUnlocked,
+          avatarSelected: user.avatarSelected
         });
       });
     } catch (err) {
@@ -504,6 +543,9 @@ router.post("/dry-plant", dryPlant);
 router.post("/add-coins", addCoins);
 router.get("/get-profile", getProfile);
 router.post("/update-avatars", updateAvatars);
+router.post("/update-avatar-selected", updateAvatarSelected);
+
+
 
 module.exports = router;
 

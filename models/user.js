@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
     }], 
     friends: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     coins: Number,
-    avatarsUnlocked: [Number]
+    avatarsUnlocked: [Number],
+    avatarSelected: Number
 });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
