@@ -23,6 +23,7 @@ const register = async (req, res) => {
         public: true,
         coins: 0,
         avatarsUnlocked: [1, 0, 0],
+        avatarSelected: 0
       });
 
       // save the new user
