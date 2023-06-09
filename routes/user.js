@@ -19,7 +19,7 @@ const register = async (req, res) => {
         email: email,
         password: hashedPassword,
         public: true,
-        coins: 0
+        coins: 0,
       });
 
       // save the new user
@@ -224,12 +224,12 @@ const getUsersFriends = async (req, res) => {
     let userId = decoded.userId;
     try {
       User.findOne({ _id: userId }).then(async function (user) {
-        const friends = await Promise.all(
+        const friendsPlants = await Promise.all(
           user.friends.map((f) => getPlantsFromUserId(f))
         );
         // console.log(friendsPlants)
         res.status(200).json({
-          friends,
+          friendsPlants,
         });
       });
     } catch (err) {
@@ -284,7 +284,7 @@ const removeFriend = async (req, res) => {
     }
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
-      user.friends.splice(user.friends.indexOf(friend_id),1);
+      user.friends.splice(user.friends.indexOf(friend_id), 1);
       user.save().then((savedUser) => {
         if (user == savedUser) {
           res.status(200).send({
@@ -314,10 +314,10 @@ const addFriend = async (req, res) => {
     }
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
-      if(user.friends.indexOf(friend_id)!=-1){
+      if (user.friends.indexOf(friend_id) != -1) {
         return res.status(201).send({
-          message: "Friend is already added!"
-        })
+          message: "Friend is already added!",
+        });
       }
       user.friends.push(friend_id);
       console.log(user);
@@ -379,7 +379,9 @@ const dryPlant = async (req, res) => {
     }
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
-      const newDate = moment(user.plantsOwned[plantNumber].dateLastWatered).subtract(amt, "days");
+      const newDate = moment(
+        user.plantsOwned[plantNumber].dateLastWatered
+      ).subtract(amt, "days");
       user.plantsOwned[plantNumber].dateLastWatered = newDate;
       console.log(user);
       user.save().then((savedUser) => {
@@ -410,7 +412,7 @@ const addCoins = async (req, res) => {
     }
     let userId = decoded.userId;
     User.findOne({ _id: userId }).then(function (user) {
-      if(user.coins === undefined) user.coins = amt;
+      if (user.coins === undefined) user.coins = amt;
       else user.coins += amt;
       console.log(user);
       user.save().then((savedUser) => {
@@ -467,9 +469,6 @@ router.post("/dry-plant", dryPlant);
 router.post("/add-coins", addCoins);
 router.get("/get-profile", getProfile);
 
-
-
-
 module.exports = router;
 
 // Helper functions
@@ -497,6 +496,7 @@ const getPlantsFromUserId = async (userId) => {
       let json = {
         friend: user,
         plantArray: plantArray,
+        coins: user.coins,
       };
       return json;
     });
